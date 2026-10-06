@@ -398,7 +398,7 @@
     $('#auth-confirm-label').classList.toggle('hidden', !showConfirm);
     $('#auth-password-label').textContent = (signingUp || updatingPassword) ? 'Create a password' : 'Password';
     $('#auth-password').autocomplete = (signingUp || updatingPassword) ? 'new-password' : 'current-password';
-    $('#auth-reset-link').classList.toggle('hidden', accountView || updatingPassword || resetView);
+    $('#auth-reset-link').classList.toggle('hidden', accountView || updatingPassword || resetView || signingUp);
     $('#auth-switch-row').classList.toggle('hidden', accountView || updatingPassword || resetView);
     $('#auth-submit').classList.toggle('hidden', accountView);
     $('#auth-signout').classList.toggle('hidden', !accountView);

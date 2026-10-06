@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f7fb" />
+    <meta name="description" content="Plan meetings and send calendar invitations by text or email." />
+    <title>MeetPush — make plans happen</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="config.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Main navigation">
+        <a class="brand" href="#overview" aria-label="MeetPush home">
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 16.5 13.1 22 24 10" /></svg></span>
+          <span>meet<span class="brand-light">push</span></span>
+        </a>
+
+        <div class="workspace-switcher">
+          <span class="workspace-avatar">M</span>
+          <span class="workspace-copy"><strong>My workspace</strong><small>Personal</small></span>
+          <span class="chevron" aria-hidden="true">⌄</span>
+        </div>
+
+        <div class="nav-label">WORKSPACE</div>
+        <nav class="nav-list">
+          <button class="nav-item active" data-view="overview"><span class="nav-icon">◫</span>Overview</button>
+          <button class="nav-item" data-view="schedule"><span class="nav-icon">▦</span>Schedule<span class="nav-count" id="schedule-count">0</span></button>
+          <button class="nav-item" data-view="invitations"><span class="nav-icon">✉</span>Invitations</button>
+          <button class="nav-item" data-view="people"><span class="nav-icon">♧</span>People</button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="tip-card">
+            <span class="tip-sparkle">✳</span>
+            <strong>Plans are better together</strong>
+            <p>Invite anyone with a phone number or email. They don’t need an account.</p>
+            <button class="tip-link" data-action="new-event">Create an event <span>↗</span></button>
+          </div>
+          <div class="profile-row">
+            <span class="profile-avatar">JD</span>
+            <span><strong>Jordan Davis</strong><small>Personal account</small></span>
+            <button class="icon-button more-button" aria-label="Account menu">···</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb"><span>Workspace</span><span class="breadcrumb-slash">/</span><strong id="breadcrumb-current">Overview</strong></div>
+          <div class="topbar-actions">
+            <button class="sync-button" id="sync-button" data-action="auth-modal"><span class="sync-indicator"></span><span id="sync-label">Local mode · Sign in</span></button>
+            <span class="today-label" id="today-label"></span>
+            <button class="icon-button notification-button" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i></i></button>
+            <button class="avatar-mini" aria-label="Jordan Davis profile">JD</button>
+          </div>
+        </header>
+
+        <div class="page-wrap">
+          <section class="view-panel active" id="view-overview" aria-labelledby="page-heading">
+            <div class="page-heading-row">
+              <div><p class="eyebrow" id="greeting">MONDAY, OCTOBER 5</p><h1 id="page-heading">Make room for what matters.</h1><p class="page-subtitle">Your schedule, all in one place.</p></div>
+              <button class="primary-button" data-action="new-event"><span class="plus">+</span> New event</button>
+            </div>
+
+            <section class="welcome-banner">
+              <div class="welcome-copy"><div class="welcome-pill"><span class="live-dot"></span> YOUR WEEK, IN SYNC</div><h2>Good things happen<br />when plans <em>come together.</em></h2><p>Set a time, invite your people, and let MeetPush take it from there.</p><button class="banner-button" data-action="new-event">Plan something <span>→</span></button></div>
+              <div class="banner-art" aria-hidden="true"><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div><div class="art-card art-card-main"><span class="art-card-kicker">UP NEXT</span><span class="art-card-title" id="art-card-title">Your next plan</span><span class="art-card-time"><span class="art-calendar" id="art-date">—</span><span id="art-when">Make room for something good</span></span><span class="art-avatars"><b>J</b><b>A</b><b>M</b><small>+2</small></span></div><div class="art-note"><span>✳</span> invite is ready</div><div class="art-confetti confetti-a">✦</div><div class="art-confetti confetti-b">✳</div></div>
+            </section>
+
+            <div class="section-heading stats-heading"><div><h2>Your overview</h2><p>A little look at what’s coming up.</p></div><button class="text-button" data-view-link="schedule">View schedule <span>→</span></button></div>
+            <div class="stats-grid">
+              <article class="stat-card"><div class="stat-top"><span class="stat-icon violet">▦</span><span class="stat-trend">THIS WEEK</span></div><strong id="stat-events">0</strong><span class="stat-caption">events on your calendar</span><div class="stat-mini-bar"><i style="width:68%"></i></div></article>
+              <article class="stat-card"><div class="stat-top"><span class="stat-icon peach">✉</span><span class="stat-trend">LOOKING GOOD</span></div><strong id="stat-invites">0</strong><span class="stat-caption">people invited this week</span><div class="mini-people"><b>J</b><b>A</b><b>M</b><b>+2</b><small>and your people, too</small></div></article>
+              <article class="stat-card"><div class="stat-top"><span class="stat-icon mint">◷</span><span class="stat-trend">NEXT UP</span></div><strong id="stat-next">—</strong><span class="stat-caption" id="stat-next-caption">your next moment together</span><div class="stat-date-line"><span class="date-line-dot"></span><span id="stat-next-date">Add an event to get started</span></div></article>
+            </div>
+
+            <div class="section-heading agenda-heading"><div><h2>Coming up</h2><p id="agenda-caption">Your plans for the week ahead.</p></div><div class="week-controls"><button class="round-button" data-week="prev" aria-label="Previous week">‹</button><span id="week-label">This week</span><button class="round-button" data-week="next" aria-label="Next week">›</button></div></div>
+            <div class="agenda-layout">
+              <div class="agenda-main"><div class="week-strip" id="week-strip"></div><div class="agenda-list" id="agenda-list"></div></div>
+              <aside class="side-panel">
+                <div class="side-panel-top"><span class="side-panel-icon">✳</span><span class="side-panel-kicker">A GOOD THING TO KNOW</span></div><h3>Inviting is the easy part.</h3><p>Add a phone number or email when you plan an event. We’ll prepare a personal invite and a calendar file you can download.</p><div class="channel-pills"><span><b>↗</b> Text</span><span><b>✉</b> Email</span><span><b>▦</b> Calendar</span></div><button class="side-panel-link" data-view-link="invitations">See your invitations <span>→</span></button>
+              </aside>
+            </div>
+            <footer class="app-footer"><span>Made for getting together <span class="footer-heart">♥</span></span><span><a href="privacy.html">Privacy</a><a href="https://github.com/Moses004/MeetPush/issues">Help</a></span></footer>
+          </section>
+
+          <section class="view-panel" id="view-schedule" aria-labelledby="schedule-heading">
+            <div class="page-heading-row"><div><p class="eyebrow">MAKE TIME FOR GOOD THINGS</p><h1 id="schedule-heading">Your schedule</h1><p class="page-subtitle">Everything you’ve got coming up.</p></div><button class="primary-button" data-action="new-event"><span class="plus">+</span> New event</button></div>
+            <div class="schedule-toolbar"><div class="week-controls"><button class="round-button" data-week="prev" aria-label="Previous week">‹</button><span id="schedule-week-label">This week</span><button class="round-button" data-week="next" aria-label="Next week">›</button></div><button class="subtle-button" data-week="today">Today</button></div>
+            <div class="schedule-list" id="schedule-list"></div>
+          </section>
+
+          <section class="view-panel" id="view-invitations" aria-labelledby="invitations-heading">
+            <div class="page-heading-row"><div><p class="eyebrow">THE MORE THE MERRIER</p><h1 id="invitations-heading">Invitations</h1><p class="page-subtitle">Every invite you’ve prepared, all together.</p></div><button class="primary-button" data-action="new-event"><span class="plus">+</span> New event</button></div>
+            <div class="info-callout"><span>✳</span><p>When a delivery provider is configured, send from MeetPush. Until then, your text or email app opens with the invitation ready for you to send.</p></div>
+            <div class="invitation-list" id="invitation-list"></div>
+          </section>
+
+          <section class="view-panel" id="view-people" aria-labelledby="people-heading">
+            <div class="page-heading-row"><div><p class="eyebrow">YOUR FAVORITE PEOPLE</p><h1 id="people-heading">People</h1><p class="page-subtitle">Guests you’ve invited to get together.</p></div><button class="primary-button" data-action="add-person"><span class="plus">+</span> Add a person</button></div>
+            <div class="people-toolbar"><div class="search-wrap"><span>⌕</span><input id="people-search" type="search" placeholder="Find someone" aria-label="Search people" /></div><span class="people-count" id="people-count"></span></div>
+            <div class="people-grid" id="people-grid"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="auth-modal" aria-hidden="true">
+      <section class="modal-card auth-modal-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <header class="modal-header"><div><p class="eyebrow">YOUR SCHEDULE, IN SYNC</p><h2 id="auth-title">Sign in to MeetPush</h2><p>Save your events securely and access them on your other devices.</p></div><button class="icon-button modal-close" data-action="close-modal" aria-label="Close">×</button></header>
+        <form id="auth-form">
+          <label class="field-label" for="auth-email">Email address</label><input class="text-input" type="email" id="auth-email" autocomplete="email" required placeholder="you@example.com" />
+          <label class="field-label" for="auth-password">Password</label><input class="text-input" type="password" id="auth-password" autocomplete="current-password" minlength="8" required placeholder="At least 8 characters" />
+          <div class="form-error" id="auth-error" role="alert"></div>
+          <p class="field-hint" id="auth-hint">Create an account to sync your events between devices. If email confirmation is enabled, confirm your address and return here to sign in.</p>
+          <div class="modal-footer auth-actions"><button type="button" class="subtle-button" data-auth-action="signup">Create account</button><button type="submit" class="primary-button" id="auth-submit">Sign in</button><button type="button" class="subtle-button hidden" id="auth-signout" data-auth-action="signout">Sign out</button></div>
+        </form>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="event-modal" aria-hidden="true">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <header class="modal-header"><div><p class="eyebrow">MAKE A PLAN</p><h2 id="modal-title">Create an event</h2><p>Put it on the calendar and bring your people along.</p></div><button class="icon-button modal-close" data-action="close-modal" aria-label="Close">×</button></header>
+        <form id="event-form">
+          <label class="field-label" for="event-title">What are we getting together for?</label><input class="text-input" id="event-title" name="title" placeholder="e.g. Team catch-up" required maxlength="90" />
+          <div class="form-row"><div><label class="field-label" for="event-date">Date</label><input class="text-input" type="date" id="event-date" name="date" required /></div><div><label class="field-label" for="event-time">Start time</label><input class="text-input" type="time" id="event-time" name="time" required /></div></div>
+          <div class="form-row"><div><label class="field-label" for="event-duration">How long?</label><select class="text-input" id="event-duration" name="duration"><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60" selected>1 hour</option><option value="90">1 hour 30 minutes</option><option value="120">2 hours</option></select></div><div><label class="field-label" for="event-kind">What kind?</label><select class="text-input" id="event-kind" name="kind"><option value="Meeting">Meeting</option><option value="Appointment">Appointment</option><option value="Event">Event</option><option value="Coffee">Coffee</option></select></div></div>
+          <label class="field-label" for="event-location">Where? <span class="optional">OPTIONAL</span></label><input class="text-input" id="event-location" name="location" placeholder="Add a place or video link" maxlength="160" />
+          <label class="field-label invite-label" for="event-guests">Who should be there? <span class="optional">PHONE OR EMAIL</span></label><textarea class="text-input guest-input" id="event-guests" name="guests" placeholder="Add a phone number or email address, separated by commas" rows="3"></textarea><p class="field-hint">Invite people who expect to hear from you. Review and send each invitation by text or email.</p>
+          <div class="form-error" id="form-error" role="alert"></div>
+          <div class="modal-footer"><button type="button" class="subtle-button" data-action="close-modal">Cancel</button><button type="submit" class="primary-button"><span class="plus">+</span> Create &amp; invite</button></div>
+        </form>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="person-modal" aria-hidden="true">
+      <section class="modal-card person-modal-card" role="dialog" aria-modal="true" aria-labelledby="person-modal-title">
+        <header class="modal-header"><div><p class="eyebrow">GROW YOUR CIRCLE</p><h2 id="person-modal-title">Add a person</h2><p>Keep their details handy for your next plan.</p></div><button class="icon-button modal-close" data-action="close-modal" aria-label="Close">×</button></header>
+        <form id="person-form"><label class="field-label" for="person-name">Name</label><input class="text-input" id="person-name" name="name" placeholder="Alex Morgan" required maxlength="80" /><label class="field-label" for="person-contact">Phone number or email</label><input class="text-input" id="person-contact" name="contact" placeholder="alex@example.com or +1 555 010 1234" required /><div class="form-error" id="person-error" role="alert"></div><div class="modal-footer"><button type="button" class="subtle-button" data-action="close-modal">Cancel</button><button type="submit" class="primary-button">Add person</button></div></form>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

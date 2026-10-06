@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f7fb" />
+    <title>Privacy · MeetPush</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      body{min-height:100vh;background:#f7f7fb;color:#414156;font:14px/1.7 Arial,sans-serif}.privacy-page{width:min(760px,calc(100% - 36px));margin:48px auto;background:#fff;border:1px solid #ececf1;border-radius:16px;padding:34px 40px}.privacy-page h1,.privacy-page h2{font-family:Arial,sans-serif;color:#29293f}.privacy-page h1{font-size:30px;margin:0 0 8px}.privacy-page h2{font-size:18px;margin:26px 0 7px}.privacy-page p,.privacy-page li{font-size:14px}.privacy-page .back{display:inline-block;margin-bottom:24px;color:#6253d2;text-decoration:none;font-weight:700}@media(max-width:600px){.privacy-page{margin:18px auto;padding:24px 20px}.privacy-page h1{font-size:25px}}
+    </style>
+  </head>
+  <body>
+    <main class="privacy-page">
+      <a class="back" href="index.html">← Back to MeetPush</a>
+      <h1>MeetPush privacy</h1>
+      <p>Last updated October 6, 2026</p>
+      <p>MeetPush stores the information you enter to organize events and prepare invitations. Use it only for people who expect to hear from you.</p>
+      <h2>Information stored</h2>
+      <p>If you create an account, Supabase Authentication stores your account email. Supabase stores your event titles, dates, times, locations, contact names, phone numbers, and email addresses so your schedule can sync between devices. Without an account, the local schedule stays in your browser.</p>
+      <h2>Invitations and delivery</h2>
+      <p>If email or SMS delivery is enabled, the relevant recipient address or phone number and invitation details are sent to the configured delivery provider (Resend for email or Twilio for SMS). If no provider is configured, MeetPush opens the email or messaging app on your device and does not send the message itself.</p>
+      <h2>Access and removal</h2>
+      <p>Your cloud schedule is available only to your signed-in account. You can remove individual events and saved contacts in MeetPush. Signing out does not delete cloud data. MeetPush currently does not include self-service account deletion.</p>
+      <h2>Storage in your browser</h2>
+      <p>MeetPush stores local schedule data and, after sign-in, the authentication session in your browser so the app can work and keep you signed in. You can clear this data through your browser settings; clearing it does not delete a cloud schedule.</p>
+    </main>
+  </body>
+</html>

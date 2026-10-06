@@ -51,6 +51,7 @@
   let cloudUser = null;
   let cloudUnavailable = false;
   let cloudClientPromise = null;
+  let authMode = 'signin';
 
   function persist() { if (!cloudUser) localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
   function remoteGuest(row) {
@@ -115,6 +116,7 @@
             showToast('Could not load your cloud schedule. Refresh and try again.');
           }
           updateSyncButton(); renderAll();
+          if (event === 'PASSWORD_RECOVERY') { authMode = 'update-password'; openAuthModal(); }
         }, 0);
       });
     } catch (error) {
@@ -358,40 +360,126 @@
     showToast(`Invitation sent to ${guest.name}.`);
   }
 
-  async function handleAuthSubmit(event) {
-    event.preventDefault(); $('#auth-error').textContent = '';
-    const client = await ensureCloudClient();
-    if (!client) { $('#auth-error').textContent = 'Cloud sign-in is unavailable. Open MeetPush from its published web address and try again.'; return; }
-    const email = $('#auth-email').value.trim(); const password = $('#auth-password').value;
-    const { error } = await client.auth.signInWithPassword({ email, password });
-    if (error) { $('#auth-error').textContent = error.message; return; }
-    closeModals(); showToast('Signed in. Your schedule is syncing.');
+  function authRedirectUrl() {
+    try {
+      const url = new URL(window.location.href); url.search = ''; url.hash = '';
+      return /^https?:$/.test(url.protocol) ? url.toString() : undefined;
+    } catch { return undefined; }
   }
-  async function handleAuthSignup() {
-    $('#auth-error').textContent = '';
+  function clearAuthFeedback() { $('#auth-error').textContent = ''; $('#auth-status').textContent = ''; }
+  function setAuthBusy(busy) {
+    $('#auth-form').setAttribute('aria-busy', String(busy));
+    ['#auth-email', '#auth-password', '#auth-password-confirm', '#auth-submit', '#auth-signout', '#auth-reset-link', '#auth-mode-switch'].forEach((selector) => { $(selector).disabled = busy; });
+  }
+  function authErrorMessage(error) {
+    const message = error?.message || 'Something went wrong. Please try again.';
+    const lower = message.toLowerCase();
+    if (lower.includes('invalid login credentials')) return 'That email and password combination wasn’t recognized. Check them and try again.';
+    if (lower.includes('email not confirmed')) return 'Confirm your email using the link we sent, then sign in.';
+    return message;
+  }
+  function renderAuthForm(focus = false) {
+    const signedIn = Boolean(cloudUser);
+    const updatingPassword = authMode === 'update-password' && signedIn;
+    const accountView = signedIn && !updatingPassword;
+    const resetView = authMode === 'reset';
+    const signingUp = authMode === 'signup';
+    const showEmail = !accountView && !updatingPassword;
+    const showPassword = !accountView && !resetView;
+    const showConfirm = !accountView && (signingUp || updatingPassword);
+    $('#auth-email').classList.toggle('hidden', !showEmail);
+    $('#auth-email').required = showEmail;
+    $('#auth-modal').querySelector('label[for="auth-email"]').classList.toggle('hidden', !showEmail);
+    $('#auth-password').classList.toggle('hidden', !showPassword);
+    $('#auth-password').required = showPassword;
+    $('#auth-password-label').classList.toggle('hidden', !showPassword);
+    $('#auth-password-confirm').classList.toggle('hidden', !showConfirm);
+    $('#auth-password-confirm').required = showConfirm;
+    $('#auth-confirm-label').classList.toggle('hidden', !showConfirm);
+    $('#auth-password-label').textContent = (signingUp || updatingPassword) ? 'Create a password' : 'Password';
+    $('#auth-password').autocomplete = (signingUp || updatingPassword) ? 'new-password' : 'current-password';
+    $('#auth-reset-link').classList.toggle('hidden', accountView || updatingPassword || resetView);
+    $('#auth-switch-row').classList.toggle('hidden', accountView || updatingPassword || resetView);
+    $('#auth-submit').classList.toggle('hidden', accountView);
+    $('#auth-signout').classList.toggle('hidden', !accountView);
+    if (resetView) {
+      $('#auth-title').textContent = 'Reset your password';
+      $('#auth-description').textContent = 'We’ll email you a secure link to choose a new password.';
+      $('#auth-hint').textContent = 'If you don’t see the message, check your spam folder.';
+      $('#auth-submit').textContent = 'Send reset link';
+    } else if (updatingPassword) {
+      $('#auth-title').textContent = 'Choose a new password';
+      $('#auth-description').textContent = 'Set a password you haven’t used with MeetPush before.';
+      $('#auth-hint').textContent = 'Use at least 8 characters.';
+      $('#auth-submit').textContent = 'Save new password';
+    } else if (accountView) {
+      $('#auth-title').textContent = `Signed in as ${cloudUser.email || 'your account'}`;
+      $('#auth-description').textContent = 'Your schedule is connected to this account.';
+      $('#auth-hint').textContent = 'Your events and people are saved securely to your MeetPush account.';
+    } else if (signingUp) {
+      $('#auth-title').textContent = 'Create your account';
+      $('#auth-description').textContent = 'Keep your events and people in sync on every device.';
+      $('#auth-hint').textContent = 'We’ll send a confirmation link to your email address.';
+      $('#auth-submit').textContent = 'Create account';
+      $('#auth-mode-switch').textContent = 'Sign in';
+      $('#auth-mode-switch').dataset.nextMode = 'signin';
+      $('#auth-switch-row').firstElementChild.textContent = 'Already have an account?';
+    } else {
+      $('#auth-title').textContent = 'Sign in to MeetPush';
+      $('#auth-description').textContent = 'Save your events securely and access them on your other devices.';
+      $('#auth-hint').textContent = 'Use your email and password to keep your schedule in sync on every device.';
+      $('#auth-submit').textContent = 'Sign in';
+      $('#auth-mode-switch').textContent = 'Create an account';
+      $('#auth-mode-switch').dataset.nextMode = 'signup';
+      $('#auth-switch-row').firstElementChild.textContent = 'New to MeetPush?';
+    }
+    if (resetView) {
+      $('#auth-mode-switch').textContent = 'Back to sign in';
+      $('#auth-mode-switch').dataset.nextMode = 'signin';
+      $('#auth-switch-row').classList.remove('hidden');
+    }
+    if (accountView) $('#auth-signout').disabled = false;
+    if (focus) window.setTimeout(() => (showEmail ? $('#auth-email') : showPassword ? $('#auth-password') : $('#auth-submit')).focus(), 0);
+  }
+  async function handleAuthSubmit(event) {
+    event.preventDefault(); clearAuthFeedback();
     const client = await ensureCloudClient();
     if (!client) { $('#auth-error').textContent = 'Cloud sign-in is unavailable. Open MeetPush from its published web address and try again.'; return; }
     const email = $('#auth-email').value.trim(); const password = $('#auth-password').value;
-    if (!email || password.length < 8) { $('#auth-error').textContent = 'Enter an email and a password with at least 8 characters.'; return; }
-    const { data: result, error } = await client.auth.signUp({ email, password });
-    if (error) { $('#auth-error').textContent = error.message; return; }
-    if (result.session) { closeModals(); showToast('Account created. Your schedule is syncing.'); }
-    else { $('#auth-hint').textContent = 'Account created. Check your email for the confirmation link, then return here and sign in.'; showToast('Check your email to confirm your account.'); }
+    const confirmPassword = $('#auth-password-confirm').value;
+    if ((authMode === 'signup' || authMode === 'update-password') && password !== confirmPassword) { $('#auth-error').textContent = 'The passwords don’t match. Enter them again.'; return; }
+    setAuthBusy(true);
+    try {
+      let result;
+      if (authMode === 'signup') {
+        const options = {}; const redirectTo = authRedirectUrl(); if (redirectTo) options.emailRedirectTo = redirectTo;
+        result = await client.auth.signUp({ email, password, options });
+        if (result.error) throw result.error;
+        if (result.data.session) { closeModals(); showToast('Account created. Your schedule is syncing.'); }
+        else { $('#auth-status').textContent = 'If an account can be created for this address, check your inbox for a confirmation link. Open it to confirm and sign in automatically; if needed, return here to sign in.'; }
+      } else if (authMode === 'signin') {
+        result = await client.auth.signInWithPassword({ email, password });
+        if (result.error) throw result.error;
+        closeModals(); showToast('Signed in. Your schedule is syncing.');
+      } else if (authMode === 'reset') {
+        const options = {}; const redirectTo = authRedirectUrl(); if (redirectTo) options.redirectTo = redirectTo;
+        result = await client.auth.resetPasswordForEmail(email, options);
+        if (result.error) throw result.error;
+        $('#auth-status').textContent = 'If an account uses this address, a password reset link is on its way. Check your inbox and spam folder.';
+      } else if (authMode === 'update-password') {
+        result = await client.auth.updateUser({ password });
+        if (result.error) throw result.error;
+        closeModals(); authMode = 'signin'; showToast('Password updated. You’re signed in.');
+      }
+    } catch (error) { $('#auth-error').textContent = authErrorMessage(error); }
+    finally { setAuthBusy(false); }
   }
   async function openAuthModal() {
-    $('#auth-modal').classList.add('open'); $('#auth-modal').setAttribute('aria-hidden', 'false'); $('#auth-error').textContent = '';
-    const client = await ensureCloudClient();
-    if (!client) { $('#auth-hint').textContent = 'Cloud sign-in needs an internet connection and the published MeetPush address. Your current device can still use the local schedule.'; }
-    const signedIn = Boolean(cloudUser);
-    $('#auth-email').classList.toggle('hidden', signedIn);
-    $('#auth-password').classList.toggle('hidden', signedIn);
-    $('#auth-modal').querySelector('label[for="auth-password"]').classList.toggle('hidden', signedIn);
-    $('#auth-modal').querySelector('label[for="auth-email"]').classList.toggle('hidden', signedIn);
-    $('[data-auth-action="signup"]').classList.toggle('hidden', signedIn);
-    $('#auth-submit').classList.toggle('hidden', signedIn);
-    $('#auth-signout').classList.toggle('hidden', !signedIn);
-    $('#auth-title').textContent = signedIn ? `Signed in as ${cloudUser.email || 'your account'}` : 'Sign in to MeetPush';
-    $('#auth-hint').textContent = signedIn ? 'Your events and people are saved securely to your MeetPush account.' : 'Create an account to sync your events between devices. If email confirmation is enabled, confirm your address and return here to sign in.';
+    const modal = $('#auth-modal'); modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); clearAuthFeedback();
+    if (authMode === 'update-password' && !cloudUser) authMode = 'signin';
+    await ensureCloudClient();
+    renderAuthForm(!cloudUser);
+    if (cloudUnavailable) $('#auth-hint').textContent = 'Cloud sign-in needs an internet connection and the published MeetPush address. Your current device can still use the local schedule.';
   }
 
   function bindActions(root = document) {
@@ -407,7 +495,7 @@
         else if (action === 'signout') {
           const { error } = await supabaseClient.auth.signOut();
           if (error) { $('#auth-error').textContent = error.message; return; }
-          closeModals(); showToast('Signed out of MeetPush.');
+          authMode = 'signin'; closeModals(); showToast('Signed out of MeetPush.');
         }
         else if (action === 'download-ics') { const event = data.events.find((item) => item.id === button.dataset.event); if (event) downloadCalendar(event); }
         else if (action === 'copy-message') { const event = data.events.find((item) => item.id === button.dataset.event); if (event) copyMessage(event); }
@@ -440,7 +528,13 @@
     $('#event-form').addEventListener('submit', handleCreateEvent);
     $('#person-form').addEventListener('submit', handleAddPerson);
     $('#auth-form').addEventListener('submit', handleAuthSubmit);
-    $('[data-auth-action="signup"]').addEventListener('click', handleAuthSignup);
+    $('#auth-mode-switch').addEventListener('click', (event) => {
+      authMode = event.currentTarget.dataset.nextMode || 'signin'; clearAuthFeedback();
+      $('#auth-password').value = ''; $('#auth-password-confirm').value = ''; renderAuthForm(true);
+    });
+    $('#auth-reset-link').addEventListener('click', () => {
+      authMode = 'reset'; clearAuthFeedback(); $('#auth-password').value = ''; $('#auth-password-confirm').value = ''; renderAuthForm(true);
+    });
     $('#people-search').addEventListener('input', renderPeople);
     $$('.modal-backdrop').forEach((backdrop) => backdrop.addEventListener('click', (event) => { if (event.target === backdrop) closeModals(); }));
     document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeModals(); });

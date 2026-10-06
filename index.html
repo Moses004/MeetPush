@@ -110,13 +110,17 @@
 
     <div class="modal-backdrop" id="auth-modal" aria-hidden="true">
       <section class="modal-card auth-modal-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-        <header class="modal-header"><div><p class="eyebrow">YOUR SCHEDULE, IN SYNC</p><h2 id="auth-title">Sign in to MeetPush</h2><p>Save your events securely and access them on your other devices.</p></div><button class="icon-button modal-close" data-action="close-modal" aria-label="Close">×</button></header>
+        <header class="modal-header"><div><p class="eyebrow">YOUR SCHEDULE, IN SYNC</p><h2 id="auth-title">Sign in to MeetPush</h2><p id="auth-description">Save your events securely and access them on your other devices.</p></div><button class="icon-button modal-close" data-action="close-modal" aria-label="Close">×</button></header>
         <form id="auth-form">
           <label class="field-label" for="auth-email">Email address</label><input class="text-input" type="email" id="auth-email" autocomplete="email" required placeholder="you@example.com" />
-          <label class="field-label" for="auth-password">Password</label><input class="text-input" type="password" id="auth-password" autocomplete="current-password" minlength="8" required placeholder="At least 8 characters" />
+          <label class="field-label" for="auth-password" id="auth-password-label">Password</label><input class="text-input" type="password" id="auth-password" autocomplete="current-password" minlength="8" required placeholder="At least 8 characters" />
+          <label class="field-label hidden" for="auth-password-confirm" id="auth-confirm-label">Confirm password</label><input class="text-input hidden" type="password" id="auth-password-confirm" autocomplete="new-password" minlength="8" placeholder="Enter your password again" />
+          <button type="button" class="auth-text-button" id="auth-reset-link">Forgot password?</button>
           <div class="form-error" id="auth-error" role="alert"></div>
-          <p class="field-hint" id="auth-hint">Create an account to sync your events between devices. If email confirmation is enabled, confirm your address and return here to sign in.</p>
-          <div class="modal-footer auth-actions"><button type="button" class="subtle-button" data-auth-action="signup">Create account</button><button type="submit" class="primary-button" id="auth-submit">Sign in</button><button type="button" class="subtle-button hidden" id="auth-signout" data-auth-action="signout">Sign out</button></div>
+          <p class="auth-status" id="auth-status" role="status" aria-live="polite"></p>
+          <p class="field-hint" id="auth-hint">Use your email and password to keep your schedule in sync on every device.</p>
+          <div class="auth-switch-row" id="auth-switch-row"><span>New to MeetPush?</span><button type="button" class="auth-text-button" id="auth-mode-switch" data-next-mode="signup">Create an account</button></div>
+          <div class="modal-footer auth-actions"><button type="submit" class="primary-button" id="auth-submit">Sign in</button><button type="button" class="subtle-button hidden" id="auth-signout" data-action="signout">Sign out</button></div>
         </form>
       </section>
     </div>
